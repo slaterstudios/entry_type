@@ -12,10 +12,19 @@ class Entry_type
 
         ee()->session->set_cache('entry_type', 'display_field', true);
 
-        $query = ee()->db->select('field_id, field_name')
-                                ->join('channels', 'channels.field_group = channel_fields.group_id')
+        $query = ee()->db->select('field_id')
+                                ->join('channels_channel_field_groups', 'channels_channel_field_groups.group_id = channel_field_groups_fields.group_id')
                                 ->where('channel_id', $channel_id)
+                                ->get('channel_field_groups_fields');    
+
+        foreach ($query->result() as $row) {
+            $filed_ids[] = $row->field_id;
+        }
+
+        $query = ee()->db->select('field_id, field_name')
+                                ->where_in('field_id', $filed_ids)
                                 ->get('channel_fields');
+
 
         foreach ($query->result() as $row) {
             $this->field_names[$row->field_id] = REQ === 'CP' ? 'field_id_'.$row->field_id : $row->field_name;
