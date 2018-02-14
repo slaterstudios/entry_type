@@ -49,6 +49,7 @@ class Entry_type_ft extends EE_Fieldtype
 
     public function replace_selected($data, $params = array(), $tagdata = false)
     {
+
         if (!isset($params['option'])) {
             return 0;
         }
@@ -81,7 +82,7 @@ class Entry_type_ft extends EE_Fieldtype
         return ee()->TMPL->parse_variables($tagdata, $vars);
     }
 
-    public function display_field($data)
+    public function display_field( $data )
     {
         $options = array();
 
@@ -147,13 +148,10 @@ class Entry_type_ft extends EE_Fieldtype
 
     private function display_field_radio($options, $current_value = '')
     {
-        $output = form_fieldset('');
-
+        $output='';
         foreach($options as $value => $label) {
             $output .= form_label(form_radio($this->field_name, $value, $value == $current_value).NBS.$label);
         }
-
-        $output .= form_fieldset_close();
 
         return $output;
     }
@@ -166,6 +164,7 @@ class Entry_type_ft extends EE_Fieldtype
     protected function fields($group_id = false, $exclude_field_id = false)
     {
         static $cache;
+        $return_arr = array();
 
         if ($group_id === false) {
             if (isset($this->settings['group_id'])) {
@@ -179,21 +178,19 @@ class Entry_type_ft extends EE_Fieldtype
             $exclude_field_id = $this->field_id;
         }
 
-        if (!isset($cache[$group_id])) {
             ee()->load->model('field_model');
 
             $query = ee()->field_model->get_fields($group_id);
 
-            $cache[$group_id] = array();
+            $return_arr[$group_id] = array();
 
             foreach ($query->result() as $row) {
-                $cache[$group_id][$row->field_id] = $row->field_label;
+                $return_arr[$group_id][$row->field_id] = $row->field_label;
             }
 
             $query->free_result();
-        }
 
-        $fields = $cache[$group_id];
+        $fields = $return_arr[$group_id];
 
         if ($exclude_field_id) {
             foreach ($fields as $field_id => $field_label) {
@@ -214,17 +211,17 @@ class Entry_type_ft extends EE_Fieldtype
 
         ee()->load->helper('array');
 
-        $action = ee()->uri->segment(4);
+        $action = ee()->uri->segment(3);
 
         if ($action === 'create') {
-            $this->settings['group_id'] = ee()->uri->segment(5);
+            $this->settings['group_id'] = ee()->uri->segment(4);
 
             $this->field_id = null;
         } else {
-            $this->field_id = ee()->uri->segment(5);
+            $this->field_id = ee()->uri->segment(4);
 
             $query = ee()->db->select('group_id')
-                ->from('channel_fields')
+                ->from('channel_field_groups_fields')
                 ->where('field_id', $this->field_id)
                 ->get();
 
